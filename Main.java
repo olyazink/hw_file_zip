@@ -1,7 +1,6 @@
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class Main {
     public static void main(String[] args) {
@@ -61,6 +60,56 @@ public class Main {
         } catch (IOException ex) {
             System.out.println(ex.getMessage());
         }
+
+        GameProgress gp1 = new GameProgress(100, 10, 1, 3.5);
+        GameProgress gp2 = new GameProgress(90, 5, 3, 10.1);
+        GameProgress gp3 = new GameProgress(10, 1, 8, 15.6);
+
+        saveGames("C:\\1\\Games\\savegames\\save1.dat", gp1);
+        saveGames("C:\\1\\Games\\savegames\\save2.dat", gp2);
+        saveGames("C:\\1\\Games\\savegames\\save3.dat", gp3);
+
+        String[] fileSave = {"C:\\1\\Games\\savegames\\save1.dat", "C:\\1\\Games\\savegames\\save2.dat", "C:\\1\\Games\\savegames\\save3.dat"};
+        zipFiles("C:\\1\\Games\\savegames\\savegames.zip", fileSave);
+
+        // delete
+        for (int i = 0; i < fileSave.length; i++) {
+            File newFile = new File(fileSave[i]);
+            newFile.delete();
+        }
     }
 
+    public static void saveGames(String str, GameProgress gp) {
+        // откроем выходной поток для записи в файл
+        try (FileOutputStream fos = new FileOutputStream(str);
+             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+            // запишем экземпляр класса в файл
+            oos.writeObject(gp);
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+
+    public static void zipFiles(String pathZip, String[] fileSave) {
+        try (ZipOutputStream zout = new ZipOutputStream(new
+                FileOutputStream(pathZip));)
+             {
+             for(int i = 0; i < fileSave.length; i++) {
+                 try (FileInputStream fis = new FileInputStream(fileSave[i]);) {
+                     ZipEntry entry = new ZipEntry(("save" + (i + 1) + ".dat"));
+                     zout.putNextEntry(entry);
+                     // считываем содержимое файла в массив byte
+                     byte[] buffer = new byte[fis.available()];
+                     fis.read(buffer);
+                     // добавляем содержимое к архиву
+                     zout.write(buffer);
+                     // закрываем текущую запись для новой записи
+                     zout.closeEntry();
+                 }
+             }
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+
+    }
 }
